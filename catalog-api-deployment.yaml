@@ -14,35 +14,6 @@ spec:
       labels:
         app: catalog-api
     spec:
-      initContainers:
-        - name: ef-migrations
-          image: splinterxsr/catalogapi:latest
-          command: ["./migrate"]
-          env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: POSTGRES_DB
-            - name: POSTGRES_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: POSTGRES_HOST
-          resources:
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
       containers:
         - name: catalog-api
           image: splinterxsr/catalogapi:latest

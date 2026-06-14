@@ -1,6 +1,6 @@
 services:
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3-management-alpine
     restart: always
     ports:
       - "5672:5672"
@@ -11,9 +11,15 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - rabbitmq_network
+      - apps_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     restart: always
     environment:
       POSTGRES_USER: catalog_user
@@ -24,11 +30,38 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - rabbitmq_network
+      - apps_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s     
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  catalog-api:
+    image: splinterxsr/catalogapi:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+      POSTGRES_HOST: postgres
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres:
+       condition: service_healthy
+      rabbitmq:
+       condition: service_healthy
+    networks:
+      - apps_network
+
 volumes:
   rabbitmq_data:
   postgres_data:
  
 networks:
-  rabbitmq_network:
+  apps_network:
     driver: bridge

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api
+  labels:
+    app: users-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-api
+  template:
+    metadata:
+      labels:
+        app: users-api
+    spec:
+      containers:
+        - name: users-api
+          image: anafmel/usersapi:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: RABBITMQ_DEFAULT_USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: RABBITMQ_DEFAULT_PASS
+
+            - name: ConnectionStrings__MySql
+              value: "Server=$(MARIADB_HOST);Port=$(MARIADB_PORT);Database=$(MARIADB_DATABASE);Uid=root;Pwd=$(MARIADB_ROOT_PASSWORD);"
+            
+            - name: MARIADB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MARIADB_HOST
+            - name: MARIADB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MARIADB_PORT
+            - name: MARIADB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MARIADB_DATABASE
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MARIADB_ROOT_PASSWORD
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"          
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-api-service
+  labels:
+    app: users-api
+spec:
+  type: NodePort
+  selector:
+    app: users-api
+  ports:
+    - port: 80         
+      targetPort: 8080  
+      nodePort: 30080   
+      protocol: TCP
+      name: http

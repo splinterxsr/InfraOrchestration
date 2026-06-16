@@ -6,3 +6,6 @@ data:
   POSTGRES_HOST: "postgres-service"
   RABBITMQ_HOST: "rabbitmq-service"
   PAYMENT_QUEUE_NAME: "payments-queue"
+  MARIADB_HOST: "users-db"
+  MARIADB_PORT: "3306"
+  MARIADB_DATABASE: "UsersDb"

@@ -98,6 +98,24 @@ services:
         condition: service_healthy
     networks:
       - apps_network
+  catalog-worker:
+    image: splinterxsr/catalogworker:latest
+    restart: always
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+      POSTGRES_HOST: postgres
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres:
+       condition: service_healthy
+      rabbitmq:
+       condition: service_healthy
+    networks:
+      - apps_network
 
 volumes:
   rabbitmq_data:

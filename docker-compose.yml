@@ -80,7 +80,7 @@ services:
       - apps_network
 
   users-api:
-    image: anafmel/usersapi:localtest
+    image: anafmel/usersapi:latest
     restart: always
     container_name: users-api
     ports:

@@ -18,6 +18,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
   postgres:
     image: postgres:15-alpine
     restart: always
@@ -37,6 +38,26 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  users-db:
+    image: mariadb:10.11
+    restart: always
+    container_name: users-db
+    environment:
+      MYSQL_ROOT_PASSWORD: SenhaAdmin123!
+      MYSQL_DATABASE: UsersDb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - apps_network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   catalog-api:
     image: splinterxsr/catalogapi:latest
     restart: always
@@ -52,9 +73,29 @@ services:
       RABBITMQ_HOST: rabbitmq
     depends_on:
       postgres:
-       condition: service_healthy
+        condition: service_healthy
       rabbitmq:
-       condition: service_healthy
+        condition: service_healthy
+    networks:
+      - apps_network
+
+  users-api:
+    image: anafmel/usersapi:latest
+    restart: always
+    container_name: users-api
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MySql=Server=users-db;Port=3306;Database=UsersDb;Uid=root;Pwd=SenhaAdmin123!;
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      users-db:
+        condition: service_healthy
     networks:
       - apps_network
   catalog-worker:
@@ -79,7 +120,8 @@ services:
 volumes:
   rabbitmq_data:
   postgres_data:
- 
+  mariadb_data:
+
 networks:
   apps_network:
     driver: bridge

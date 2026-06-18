@@ -36,6 +36,11 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: RABBITMQ_HOST
+            - name: ORDER_PLACED_QUEUE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ORDER_PLACED_QUEUE_NAME
           resources:
             requests:
               cpu: "100m"

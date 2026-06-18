@@ -8,6 +8,7 @@ data:
   MARIADB_HOST: "users-service"
   USER_QUEUE_NAME: "users-queue"
   PAYMENT_QUEUE_NAME: "payments-queue"
+  ORDER_PLACED_QUEUE_NAME: "orders-placed-queue"
   JWT_ISSUER: "FiapCloudGames"
   JWT_SECONDS: "3600"
 

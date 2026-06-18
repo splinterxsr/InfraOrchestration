@@ -39,30 +39,27 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: RABBITMQ_DEFAULT_PASS
-
-            - name: ConnectionStrings__MySql
-              value: "Server=$(MARIADB_HOST);Port=$(MARIADB_PORT);Database=$(MARIADB_DATABASE);Uid=root;Pwd=$(MARIADB_ROOT_PASSWORD);"
             
             - name: MARIADB_HOST
               valueFrom:
                 configMapKeyRef:
                   name: app-config
                   key: MARIADB_HOST
-            - name: MARIADB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: MARIADB_PORT
             - name: MARIADB_DATABASE
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: MARIADB_DATABASE
-            - name: MARIADB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
-                  key: MARIADB_ROOT_PASSWORD
+                  key: MARIADB_DATABASE
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MARIADB_USER
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MARIADB_PASSWORD
 
           resources:
             requests:

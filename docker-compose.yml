@@ -39,15 +39,14 @@ services:
       retries: 5
       start_period: 10s
 
-  users-db:
+  mariadb:
     image: mariadb:10.11
     restart: always
-    container_name: users-db
     environment:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
-      MYSQL_DATABASE: UsersDb
+      MYSQL_DATABASE: users_db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -82,22 +81,25 @@ services:
   users-api:
     image: anafmel/usersapi:latest
     restart: always
-    container_name: users-api
     ports:
       - "5000:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MySql=Server=users-db;Port=3306;Database=UsersDb;Uid=root;Pwd=SenhaAdmin123!;
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      ASPNETCORE_ENVIRONMENT: Development
+      MARIADB_USER: root
+      MARIADB_PASSWORD: SenhaAdmin123!
+      MARIADB_DATABASE: users_db
+      MARIADB_HOST: mariadb
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     depends_on:
       rabbitmq:
         condition: service_healthy
-      users-db:
+      mariadb:
         condition: service_healthy
     networks:
       - apps_network
+
   catalog-worker:
     image: splinterxsr/catalogworker:latest
     restart: always
@@ -132,6 +134,19 @@ services:
        condition: service_healthy
     networks:
       - apps_network
+
+  payments-worker:
+    image: anafmel/paymentsworker:latest
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+       condition: service_healthy
+    networks:
+      - apps_network	
 
 volumes:
   rabbitmq_data:

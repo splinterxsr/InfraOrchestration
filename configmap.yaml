@@ -5,8 +5,9 @@ metadata:
 data:
   POSTGRES_HOST: "postgres-service"
   RABBITMQ_HOST: "rabbitmq-service"
+  MARIADB_HOST: "users-service"
   USER_QUEUE_NAME: "users-queue"
   PAYMENT_QUEUE_NAME: "payments-queue"
-  MARIADB_HOST: "users-db"
-  MARIADB_PORT: "3306"
-  MARIADB_DATABASE: "UsersDb"
+  JWT_ISSUER: "FiapCloudGames"
+  JWT_SECONDS: "3600"
+

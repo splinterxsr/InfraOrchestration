@@ -57,6 +57,21 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: MARIADB_ROOT_PASSWORD
+            - name: JWT_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: JWT_ISSUER
+            - name: JWT_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: JWT_SECONDS
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: JWT_KEY
 
           resources:
             requests:

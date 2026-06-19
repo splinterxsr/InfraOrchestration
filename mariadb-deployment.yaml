@@ -12,18 +12,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-db
-  labels:
-    app: users-db
+  name: mariadb-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: users-db
+      app: mariadb
   template:
     metadata:
       labels:
-        app: users-db
+        app: mariadb
     spec:
       containers:
         - name: mariadb
@@ -32,18 +30,27 @@ spec:
             - containerPort: 3306
               name: mysql
           env:
-            # Apontando para o seu Secret atualizado
-            - name: MYSQL_ROOT_PASSWORD
+            - name: MARIADB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MARIADB_HOST
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MARIADB_DATABASE
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MARIADB_USER
+            - name: MARIADB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: MARIADB_ROOT_PASSWORD
-            # Apontando para o seu ConfigMap atualizado
-            - name: MYSQL_DATABASE
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: MARIADB_DATABASE
+
           livenessProbe:
             exec:
               command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
@@ -65,11 +72,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-db
+  name: mariadb-service
 spec:
   type: ClusterIP
   selector:
-    app: users-db
+    app: mariadb
   ports:
     - port: 3306
       targetPort: 3306

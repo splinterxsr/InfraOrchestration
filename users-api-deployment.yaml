@@ -64,7 +64,7 @@ spec:
               memory: "256Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi" 
+              memory: "512Mi"  
           readinessProbe:
             httpGet:
               path: /health/ready
@@ -79,6 +79,7 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 3         
+
 ---
 
 apiVersion: v1

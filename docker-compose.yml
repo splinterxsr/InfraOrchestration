@@ -39,8 +39,8 @@ services:
       retries: 5
       start_period: 10s
 
-  mariadb:
-    image: mariadb:10.11
+  mysql:
+    image: mysql:8.0
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
@@ -48,7 +48,7 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
       - apps_network
     healthcheck:
@@ -85,10 +85,10 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      MARIADB_USER: root
-      MARIADB_PASSWORD: SenhaAdmin123!
-      MARIADB_DATABASE: users_db
-      MARIADB_HOST: mariadb
+      MYSQL_USER: root             
+      MYSQL_ROOT_PASSWORD: SenhaAdmin123! 
+      MYSQL_DATABASE: users_db
+      MYSQL_HOST: mysql
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -98,7 +98,7 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-      mariadb:
+      mysql:
         condition: service_healthy
     networks:
       - apps_network
@@ -155,7 +155,7 @@ services:
 volumes:
   rabbitmq_data:
   postgres_data:
-  mariadb_data:
+  mysql_data:
 
 networks:
   apps_network:

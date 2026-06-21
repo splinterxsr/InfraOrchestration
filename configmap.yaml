@@ -5,7 +5,7 @@ metadata:
 data:
   POSTGRES_HOST: "postgres-service"
   RABBITMQ_HOST: "rabbitmq-service"
-  MARIADB_HOST: "mariadb-service"
+  MYSQL_HOST: "mysql-service"
   USER_QUEUE_NAME: "users-queue"
   PAYMENT_QUEUE_NAME: "payments-queue"
   ORDER_PLACED_QUEUE_NAME: "orders-placed-queue"

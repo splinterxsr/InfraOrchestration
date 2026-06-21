@@ -9,6 +9,9 @@ data:
   USER_QUEUE_NAME: "users-queue"
   PAYMENT_QUEUE_NAME: "payments-queue"
   ORDER_PLACED_QUEUE_NAME: "orders-placed-queue"
+  USER_CREATED_EXCHANGE_NAME: "user-created-event"
+  ORDER_PLACED_EXCHANGE_NAME: "order-placed-event"
+  PAYMENT_PROCESSED_EXCHANGE_NAME: "payment-processed-event"
   JWT_ISSUER: "FiapCloudGames"
   JWT_SECONDS: "3600"
 

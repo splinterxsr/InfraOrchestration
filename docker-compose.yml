@@ -39,7 +39,7 @@ services:
       retries: 5
       start_period: 10s
 
-   mysql:
+  mysql:
     image: mysql:8.0
     restart: always
     environment:
@@ -85,7 +85,7 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      MYSQL_USER: root             
+      MYSQL_USER: root              
       MYSQL_ROOT_PASSWORD: SenhaAdmin123! 
       MYSQL_DATABASE: users_db
       MYSQL_HOST: mysql
@@ -118,9 +118,9 @@ services:
       PAYMENT_QUEUE_NAME: payments-queue
     depends_on:
       postgres:
-       condition: service_healthy
+        condition: service_healthy
       rabbitmq:
-       condition: service_healthy
+        condition: service_healthy
     networks:
       - apps_network
 
@@ -135,7 +135,7 @@ services:
       PAYMENT_QUEUE_NAME: payments-queue
     depends_on:
       rabbitmq:
-       condition: service_healthy
+        condition: service_healthy
     networks:
       - apps_network
 
@@ -151,9 +151,9 @@ services:
       ORDER_PLACED_QUEUE_NAME: orders-placed-queue
     depends_on:
       rabbitmq:
-       condition: service_healthy
+        condition: service_healthy
     networks:
-      - apps_network	
+      - apps_network 
 
 volumes:
   rabbitmq_data:

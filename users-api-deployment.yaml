@@ -17,7 +17,10 @@ spec:
       initContainers:
         - name: wait-for-mysql
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z -w 2 mysql-service 3306; do echo aguardando o mysql subir...; sleep 2; done;']
+          command: 
+            - 'sh'
+            - '-c'
+            - 'until nc -z -w 2 mysql-service 3306; do echo "aguardando o mysql responder na porta..."; sleep 2; done; echo "Porta aberta! Aguardando 10 segundos para o servidor estabilizar..."; sleep 10;'
       containers:
         - name: users-api
           image: anafmel/usersapi:latest

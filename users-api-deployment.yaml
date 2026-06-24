@@ -42,12 +42,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
-                  key: RABBITMQ_DEFAULT_PASS
-            - name: USER_CREATED_EXCHANGE_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: USER_CREATED_EXCHANGE_NAME           
+                  key: RABBITMQ_DEFAULT_PASS        
             - name: MYSQL_HOST
               valueFrom:
                 configMapKeyRef:

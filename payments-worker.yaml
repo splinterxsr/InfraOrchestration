@@ -36,16 +36,6 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: RABBITMQ_HOST
-            - name: ORDER_PLACED_EXCHANGE_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: ORDER_PLACED_EXCHANGE_NAME 
-            - name: PAYMENT_PROCESSED_EXCHANGE_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: PAYMENT_PROCESSED_EXCHANGE_NAME 
             - name: ORDER_PLACED_QUEUE_NAME
               valueFrom:
                 configMapKeyRef:

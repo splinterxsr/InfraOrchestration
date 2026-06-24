@@ -92,7 +92,6 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-      USER_CREATED_EXCHANGE_NAME: user-created-event
       JWT_ISSUER: FiapCloudGames
       JWT_SECONDS: 3600
       JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
@@ -146,8 +145,6 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
-      ORDER_PLACED_EXCHANGE_NAME: order-placed-event
-      PAYMENT_PROCESSED_EXCHANGE_NAME: payment-processed-event
       ORDER_PLACED_QUEUE_NAME: orders-placed-queue
     depends_on:
       rabbitmq:

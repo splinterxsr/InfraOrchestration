@@ -61,7 +61,7 @@ services:
     image: splinterxsr/catalogapi:latest
     restart: always
     ports:
-      - "8080:8080"
+      - "5010:8080"
     environment:
       POSTGRES_USER: catalog_user
       POSTGRES_PASSWORD: catalog_pass
@@ -70,6 +70,8 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
+      JWT_ISSUER: FiapCloudGames
+      JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
     depends_on:
       postgres:
         condition: service_healthy

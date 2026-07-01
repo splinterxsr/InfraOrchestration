@@ -46,7 +46,7 @@ services:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
       MYSQL_DATABASE: users_db
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:

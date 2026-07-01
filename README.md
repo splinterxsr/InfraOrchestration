@@ -15,12 +15,12 @@ O projeto consiste nos seguintes elementos:
 
 ## Fluxo de Mensagens
 
-# 1 - Cadastro de novos usuários
+### 1 - Cadastro de novos usuários
 1. Usuário administrador já autenticado faz requisição POST no endpoint `/api/users/create` no Users.Api.
 2. Users.Api efetua cadastro e cria evento `UserCreatedEvent`.
 3. Notifications.Worker consome o evento `UserCreatedEvent` na fila `users-queue` e simula o envido de um e-mail dando boas vindas ao usuário.
 
-# 2 - Aquisição de jogos
+### 2 - Aquisição de jogos
 1. Usuário autenticado faz requisição POST no endpoint `/catalog` no Catalog.Api.
 2. Catalog.Api inicia o processo de aquisição, criando o evento `OrderPlacedEvent`.
 3. Payments.Worker consome o evento `OrderPlacedEvent` na fila `orders-placed-queue` e simula processamento do pagamento.

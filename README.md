@@ -123,7 +123,7 @@ Os logs das aplicações permitem acompanhamento de todos os fluxos principais, 
 - **.NET 10.0**: Framework principal
 - **MassTransit**: Abstração para messaging
 - **RabbmitMQ**: Message broker
-- **Docker**: Containerização do Kafka
+- **Docker**: Containerização dos serviços e das aplicações
 - **Postgres**: Banco de dados relacional para persistência de jogos e catálogos
 - **MySQL**: Banco de dados relacional para persistência de usuários
 

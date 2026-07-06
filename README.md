@@ -58,7 +58,7 @@ Esta opção baixa ou constrói as imagens e sobe toda a infraestrutura (Bancos 
 ```bash
 # Clone este repositório orquestrador
 git clone https://github.com/splinterxsr/InfraOrchestration.git
-cd InfraOrchestration\
+cd InfraOrchestration/
 
 # Inicialize todos os serviços em segundo plano
 docker-compose up -d --build
@@ -71,6 +71,10 @@ Como os microsserviços estão divididos em diferentes repositórios, o processo
 Primeiro, aplique os manifestos globais contidos neste repositório raiz.
 
 ```bash
+# Clone este repositório orquestrador
+git clone https://github.com/splinterxsr/InfraOrchestration.git
+cd InfraOrchestration/
+
 cd k8s/
 kubectl apply -f .
 cd ..

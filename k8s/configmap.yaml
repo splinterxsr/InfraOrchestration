@@ -5,5 +5,4 @@ metadata:
 data:
   POSTGRES_HOST: "postgres-service"
   RABBITMQ_HOST: "rabbitmq-service"
-  PAYMENT_QUEUE_NAME: "payments-queue"
   JWT_ISSUER: "FiapCloudGames"

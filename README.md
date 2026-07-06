@@ -119,15 +119,17 @@ cd ../../..
 
 # Portas e URLs Importantes
 Após a inicialização com sucesso, as seguintes URLs estarão disponíveis:
-| Serviço | URL Local / Endpoint | Descrição |
-| :--- | :--- | :--- |
-| Users API | http://localhost:5000 | autenticação e cadastro de usuários |
-| Catalog API | http://localhost:5010 | CRUD de jogos e catálogos |
-| RabbitMQ Dashboard | http://localhost:15672 | Painel de controle do Broker. User/Password: guest / guest |
+| Serviço | URL Compose | URL Kubernetes | Descrição |
+| :--- | :--- | :--- | :--- |
+| Users API | http://localhost:5000 | http://localhost:30100 | autenticação e cadastro de usuários |
+| Catalog API | http://localhost:5010 | http://localhost:30080 | CRUD de jogos e catálogos |
+| RabbitMQ Dashboard | http://localhost:15672 | http://localhost:31672 | Painel de controle do Broker. User/Password: guest / guest |
 
 
 # Testando a Aplicação (Passo a Passo)
 Utilize ferramentas como Postman, Insomnia, a extensão REST Client (VS Code) ou o próprio terminal via curl.
+
+*Obs: abaixo, exemplificamos as requisições utilizando as URL's disponibilizadas pelo docker-compose.*
 
 ## Passo 1: Autenticação
 Realize a chamada para obter o Bearer Token necessário para as demais requisições.

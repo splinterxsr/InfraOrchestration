@@ -73,48 +73,51 @@ Primeiro, aplique os manifestos globais contidos neste repositório raiz.
 ```bash
 # Clone este repositório orquestrador
 git clone https://github.com/splinterxsr/InfraOrchestration.git
-cd InfraOrchestration/
 
-cd k8s/
+cd InfraOrchestration/k8s/
 kubectl apply -f .
-cd ..
+cd ../..
 ```
 
 #### 2. Implantação dos Microsserviços
 
 Execute os blocos de comandos abaixo para clonar cada repositório em uma pasta temporária ou paralela e aplicar seus respectivos arquivos:
 
+##### 2.1 Microsserviço de Usuários
 ```bash
-# ---- 1. Microsserviço de Usuários ----
 git clone https://github.com/AnaFMel/Users.git
 cd Users/Users.API/k8s
 kubectl apply -f .
 cd ../../..
 ```
 
+##### 2.2 Microsserviço de Catálogo (API e Worker)
 ```bash
-# ---- 2. Microsserviço de Catálogo (API e Worker) ----
 git clone https://github.com/splinterxsr/Catalog.git
-# Aplicando API
+```
+###### Aplicando API:
+```bash
 cd Catalog/Catalog.Api/k8s
 kubectl apply -f .
-cd ../..
-# Aplicando Worker
+cd ../../..
+```
+###### Aplicando Worker:
+```bash
 cd Catalog/Catalog.Worker/k8s
 kubectl apply -f .
 cd ../../..
 ```
 
+##### 2.3 Microsserviço de Pagamentos
 ```bash
-# ---- 3. Microsserviço de Pagamentos ----
 git clone https://github.com/AnaFMel/Payments.git
 cd Payments/PaymentsWorker/k8s
 kubectl apply -f .
 cd ../../..
 ```
 
+##### 2.4 Microsserviço de Notificações
 ```bash
-# ---- 4. Microsserviço de Notificações ----
 git clone https://github.com/splinterxsr/Notifications.git
 cd Notifications/Notifications.Worker/k8s 
 kubectl apply -f .

@@ -125,6 +125,19 @@ Após a inicialização com sucesso, as seguintes URLs estarão disponíveis:
 | Catalog API | http://localhost:5010 | http://localhost:30080 | CRUD de jogos e catálogos |
 | RabbitMQ Dashboard | http://localhost:15672 | http://localhost:31672 | Painel de controle do Broker. User/Password: guest / guest |
 
+# Acesso aos Bancos de Dados
+
+### MySQL
+* Porta: 3306
+* Usuário: root
+* Senha: SenhaAdmin123!
+* Base: users_db
+
+### PostgreSQL
+* Porta: 5432
+* Usuário: catalog_user
+* Senha: catalog_pass
+* Base: catalog_db
 
 # Testando a Aplicação (Passo a Passo)
 Utilize ferramentas como Postman, Insomnia, a extensão REST Client (VS Code) ou o próprio terminal via curl.

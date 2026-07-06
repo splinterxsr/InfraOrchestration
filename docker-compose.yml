@@ -52,10 +52,11 @@ services:
     networks:
       - apps_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pSenhaAdmin123!"]
+      test: ["CMD-SHELL", "mysql -u root -pSenhaAdmin123! -e 'SELECT 1;'"]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 15s
 
   catalog-api:
     image: splinterxsr/catalogapi:latest

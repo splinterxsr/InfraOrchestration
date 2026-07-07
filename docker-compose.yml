@@ -117,7 +117,7 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
-      PAYMENT_QUEUE_NAME: payments-queue
+      PAYMENT_QUEUE_NAME: payments-1-queue
     depends_on:
       postgres:
         condition: service_healthy
@@ -134,7 +134,7 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
       USER_QUEUE_NAME: users-queue
-      PAYMENT_QUEUE_NAME: payments-queue
+      PAYMENT_QUEUE_NAME: payments-2-queue
     depends_on:
       rabbitmq:
         condition: service_healthy

@@ -42,7 +42,7 @@ sequenceDiagram
     activate RMQ
     US-->>UsersAPI: Retorna Sucesso
     deactivate US
-    UsersAPI-->>User: Retorna Usuário Criado (201 Created)
+    UsersAPI-->>User: Retorna Status 200 OK
     deactivate UsersAPI
 
     RMQ-)NotifWorker: Consome UserCreatedEvent
@@ -75,7 +75,7 @@ sequenceDiagram
     activate RMQ
     CS-->>CatAPI: Confirma recebimento da ordem
     deactivate CS
-    CatAPI-->>User: Pedido Recebido / Processando (202 Accepted)
+    CatAPI-->>User: Pedido Recebido / Processando (200 OK)
     deactivate CatAPI
 
     %% Processamento do Pagamento
@@ -85,10 +85,10 @@ sequenceDiagram
     PayWorker->>PayWorker: PaymentService.SimulatePayment()
     
     alt Pagamento Aprovado
-        PayWorker->>RMQ: Publica PaymentProcessedEvent
+        PayWorker->>RMQ: Publica PaymentProcessedEvent com status Approved
         activate RMQ
     else Pagamento Recusado
-        PayWorker->>RMQ: [Opcional] Publica PaymentFailedEvent
+        PayWorker->>RMQ:  Publica PaymentProcessedEvent com status Rejected
     end
     deactivate PayWorker
 

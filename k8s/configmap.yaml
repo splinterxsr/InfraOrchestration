@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: app-config
 data:
-  POSTGRES_HOST: "postgres-service"
+  MONGODB_HOST: "mongodb-service"
   RABBITMQ_HOST: "rabbitmq-service"
   JWT_ISSUER: "FiapCloudGames"

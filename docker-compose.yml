@@ -1,4 +1,60 @@
 services:
+  kong:
+    image: kong:latest
+    container_name: kong-gateway
+    environment:
+      KONG_DATABASE: "off"                     
+      KONG_DECLARATIVE_CONFIG: "/etc/kong/kong.yml"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ./kong/kong.yml:/etc/kong/kong.yml
+    networks:
+      - apps_network
+    restart: always
+
+  localstack:
+    image: localstack/localstack:3.3.0
+    container_name: localstack-serverless
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs,lambda,iam,sns
+      - AWS_DEFAULT_REGION=us-east-1
+      - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
+    volumes:
+      - ./localstack-init:/etc/localstack/init/ready.d
+      - ./lambda.zip:/opt/code/localstack/lambda.zip
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - apps_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - apps_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - apps_network
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     restart: always
@@ -87,21 +143,28 @@ services:
     ports:
       - "5000:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      MYSQL_USER: root              
-      MYSQL_ROOT_PASSWORD: SenhaAdmin123! 
-      MYSQL_DATABASE: users_db
-      MYSQL_HOST: mysql
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      JWT_ISSUER: FiapCloudGames
-      JWT_SECONDS: 3600
-      JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
+      - ASPNETCORE_ENVIRONMENT=Development
+      - LOCALSTACK_HOST=localstack
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - ConnectionStrings__DefaultConnection=Server=mysql;Database=users_db;Uid=root;Pwd=SenhaAdmin123!;
+      - MYSQL_USER=root             
+      - MYSQL_ROOT_PASSWORD=SenhaAdmin123! 
+      - MYSQL_DATABASE=users_db
+      - MYSQL_HOST=mysql
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - JWT_ISSUER=FiapCloudGames
+      - JWT_SECONDS=3600
+      - JWT_KEY=M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
     depends_on:
-      rabbitmq:
-        condition: service_healthy
       mysql:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - apps_network
@@ -126,21 +189,6 @@ services:
     networks:
       - apps_network
 
-  notifications-worker:
-    image: splinterxsr/notificationsworker:latest
-    restart: always
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
-      USER_QUEUE_NAME: users-queue
-      PAYMENT_QUEUE_NAME: payments-2-queue
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - apps_network
-
   payments-worker:
     image: anafmel/paymentsworker:latest
     restart: always
@@ -153,7 +201,7 @@ services:
       rabbitmq:
         condition: service_healthy
     networks:
-      - apps_network 
+      - apps_network  
 
 volumes:
   rabbitmq_data:

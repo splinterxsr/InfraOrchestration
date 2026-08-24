@@ -24,6 +24,7 @@ services:
       - name: catalog-route
         paths:
           - /catalog
+          - /game
         strip_path: false
         plugins:
           - name: jwt

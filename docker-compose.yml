@@ -29,8 +29,6 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
     volumes:
-      - ./localstack-init:/etc/localstack/init/ready.d
-      - ./lambda.zip:/opt/code/localstack/lambda.zip
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - apps_network
@@ -54,26 +52,6 @@ services:
       - apps_network
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - apps_network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
 
   postgres:
     image: postgres:15-alpine
@@ -124,16 +102,14 @@ services:
       POSTGRES_PASSWORD: catalog_pass
       POSTGRES_DB: catalog_db
       POSTGRES_HOST: postgres
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
+      AWS_ENDPOINT: http://localstack:4566
       JWT_ISSUER: FiapCloudGames
       JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      localstack:
+        condition: service_started
     networks:
       - apps_network
 
@@ -144,7 +120,7 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - LOCALSTACK_HOST=localstack
+      - AWS_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=us-east-1
@@ -153,9 +129,6 @@ services:
       - MYSQL_ROOT_PASSWORD=SenhaAdmin123! 
       - MYSQL_DATABASE=users_db
       - MYSQL_HOST=mysql
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
       - JWT_ISSUER=FiapCloudGames
       - JWT_SECONDS=3600
       - JWT_KEY=M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
@@ -163,9 +136,7 @@ services:
       mysql:
         condition: service_healthy
       localstack:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+        condition: service_started
     networks:
       - apps_network
 
@@ -177,15 +148,13 @@ services:
       POSTGRES_PASSWORD: catalog_pass
       POSTGRES_DB: catalog_db
       POSTGRES_HOST: postgres
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
+      AWS_ENDPOINT: http://localstack:4566
       PAYMENT_QUEUE_NAME: payments-1-queue
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      localstack:
+        condition: service_started
     networks:
       - apps_network
 
@@ -193,18 +162,15 @@ services:
     image: anafmel/paymentsworker:latest
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
+      AWS_ENDPOINT: http://localstack:4566
       ORDER_PLACED_QUEUE_NAME: orders-placed-queue
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      localstack:
+        condition: service_started
     networks:
-      - apps_network  
+      - apps_network
 
 volumes:
-  rabbitmq_data:
   postgres_data:
   mysql_data:
 

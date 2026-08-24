@@ -62,12 +62,12 @@ O ecossistema pode ser executado via **Docker Compose** ou via **Kubernetes**.
 
 ```bash
 # 1. Clone o repositório orquestrador e inicie a infraestrutura
-git clone [https://github.com/splinterxsr/InfraOrchestration.git](https://github.com/splinterxsr/InfraOrchestration.git)
+git clone https://github.com/splinterxsr/InfraOrchestration.git
 cd InfraOrchestration/
 docker-compose up -d --build
 
 # 2. Clone e implante o serviço Serverless (Em uma nova aba/pasta)
-git clone [https://github.com/splinterxsr/Notifications.git](https://github.com/splinterxsr/Notifications.git)
+git clone https://github.com/splinterxsr/Notifications.git
 cd Notifications/Notifications.Lambda/
 npm install -D serverless-localstack
 serverless deploy --stage local
@@ -81,7 +81,7 @@ Como os microsserviços estão divididos, é necessário aplicar os manifestos Y
 #### 1. Configurações Compartilhadas e Infraestrutura
 
 ```bash
-git clone [https://github.com/splinterxsr/InfraOrchestration.git](https://github.com/splinterxsr/InfraOrchestration.git)
+git clone https://github.com/splinterxsr/InfraOrchestration.git
 cd InfraOrchestration/k8s/
 kubectl apply -f .
 
@@ -96,7 +96,7 @@ Para fazer o deploy da função no LocalStack que está rodando dentro do Kubern
 kubectl port-forward svc/localstack 4566:4566
 
 # Em outro terminal, faça o deploy:
-git clone [https://github.com/splinterxsr/Notifications.git](https://github.com/splinterxsr/Notifications.git)
+git clone https://github.com/splinterxsr/Notifications.git
 cd Notifications/Notifications.Lambda/
 npm install -D serverless-localstack
 serverless deploy --stage local

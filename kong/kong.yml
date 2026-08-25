@@ -1,0 +1,39 @@
+_format_version: "3.0"
+
+services:
+  - name: users-service
+    url: http://users-api:8080
+    routes:
+      - name: users-auth-route
+        paths:
+          - /api/users/auth
+        strip_path: false
+
+      - name: users-protected-route
+        paths:
+          - /api/users
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: [ "jwt" ]
+
+  - name: catalog-service
+    url: http://catalog-api:8080
+    routes:
+      - name: catalog-route
+        paths:
+          - /catalog
+          - /game
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: [ "jwt" ]
+
+consumers:
+  - username: FiapCloudGames
+    jwt_secrets:
+      - key: FiapCloudGames
+        secret: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
+        algorithm: HS512

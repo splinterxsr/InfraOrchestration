@@ -1,6 +1,8 @@
 # Projeto Tech Challenge FIAP - Orquestration
 
-Este repositório centraliza a orquestração, implantação e execução do ecossistema de microsserviços do projeto **Fiap Cloud Games**. A arquitetura foi desenhada seguindo o modelo orientado a eventos, utilizando mensageria assíncrona para garantir alta escalabilidade, desacoplamento e resiliência entre os serviços.
+Este repositório centraliza a orquestração, implantação e execução do ecossistema de microsserviços do projeto **Fiap Cloud Games**. 
+
+A arquitetura foi modernizada para atender a requisitos avançados de escalabilidade, resiliência e observabilidade. O sistema utiliza um **API Gateway** como ponto de entrada único, comunicação orientada a eventos via **Amazon SQS/SNS**, execução **Serverless** para otimização de recursos, e uma stack completa de **Monitoramento e Persistência Poliglota**.
 
 ---
 
@@ -8,166 +10,153 @@ Este repositório centraliza a orquestração, implantação e execução do eco
 
 O ecossistema é fragmentado em múltiplos repositórios específicos para cada domínio. A tabela abaixo resume o papel de cada componente:
 
-| Componente | Tipo | Repositório de Origem | Descrição / Responsabilidade |
-| :--- | :--- | :--- | :--- |
-| **`Users.Api`** | Minimal API | [GitHub - Users](https://github.com/AnaFMel/Users.git) | Gerenciamento de usuários, autenticação (JWT), cadastro e obtenção de dados. Persistência em MySQL. |
-| **`Catalog.Api`** | REST API | [GitHub - Catalog](https://github.com/splinterxsr/Catalog.git) | Gerenciamento de jogos (CRUD) e inicialização da intenção de compra/aquisição de um jogo. Persistência em PostgreSQL. |
-| **`Catalog.Worker`**| Worker | [GitHub - Catalog](https://github.com/splinterxsr/Catalog.git) | Consome a confirmação de pagamento e efetiva a vinculação do jogo ao catálogo do usuário. |
-| **`Payments.Worker`**| Worker | [GitHub - Payments](https://github.com/AnaFMel/Payments.git) | Consome as intenções de compra, simula pagamento e emite o resultado. |
-| **`Notifications.Worker`**| Worker | [GitHub - Notifications](https://github.com/splinterxsr/Notifications.git) | Consome eventos de sistema (criação de conta, pagamentos) e simula o disparo de e-mails. |
-| **`RabbitMQ`** | Broker | *Infraestrutura* | Message Broker responsável por receber, rotear e entregar os eventos utilizando o ecossistema do **MassTransit**. |
+| Componente | Tipo | Descrição / Responsabilidade |
+| :--- | :--- | :--- |
+| **`Kong API Gateway`** | Gateway | Ponto de entrada unificado. Responsável por rotear as requisições para os microsserviços internos e validar a autenticação (JWT) na borda. |
+| **`Users.Api`** | Minimal API | Gerenciamento de usuários, autenticação (JWT) e cadastro. Persistência em **MySQL**. |
+| **`Catalog.Api`** | REST API | Gerenciamento de jogos (CRUD) e intenção de compra. Persistência poliglota utilizando **PostgreSQL**, **MongoDB** e Cache distribuído com **Redis**. |
+| **`Catalog.Worker`**| Worker | Consome a confirmação de pagamento e efetiva a vinculação do jogo ao catálogo do usuário. |
+| **`Payments.Worker`**| Worker | Consome as intenções de compra, simula pagamento e emite o resultado. |
+| **`Notifications.Lambda`**| Serverless | Função Serverless (AWS Lambda) acionada sob demanda para disparo simulado de e-mails, otimizando o uso de recursos. |
+| **`LocalStack`** | Infra (Cloud) | Emulador local do ecossistema AWS, provendo os serviços de **SQS**, **SNS** e **Lambda**. |
+| **`Prometheus & Grafana`**| Observabilidade | Coleta de métricas instrumentadas (OpenTelemetry) das APIs e geração de dashboards em tempo real. |
 
 ---
 
 ## Fluxos Orientados a Eventos
 
-A comunicação entre os microsserviços ocorre de forma assíncrona baseada em eventos publicados no RabbitMQ. Abaixo está o mapeamento do comportamento do sistema:
+A comunicação assíncrona entre os microsserviços ocorre através de filas do **Amazon SQS** e tópicos **SNS**, gerenciados pelo **MassTransit**.
 
 ### 1. Fluxo de Cadastro de Novos Usuários
-1. **Gatilho Inicial**: Um usuário administrador autenticado envia uma requisição `POST` para o endpoint `/api/users/create` na **Users.Api**.
-2. **Persistência e Publicação**: A API efetua o cadastro no banco de dados MySQL e publica o evento `UserCreatedEvent` no broker.
-3. **Reação Assíncrona**: O **Notifications.Worker** intercepta esse evento através da fila `users-queue` e realiza a simulação do envio de um e-mail de boas-vindas para o novo usuário.
+1. **Gatilho Inicial**: Uma requisição via Kong API Gateway para `/api/users/create` atinge a **Users.Api**.
+2. **Persistência e Publicação**: A API cadastra o usuário no banco de dados MySQL e publica o evento `UserCreatedEvent` no SQS.
+3. **Reação Assíncrona**: A função serverless **Notifications.Lambda** é acionada (triggered) consumindo o evento da fila `users-queue` para simular o envio de um e-mail de boas-vindas.
 
 ### 2. Fluxo de Aquisição e Compra de Jogos
-1. **Gatilho Inicial**: Um usuário autenticado solicita a compra de um jogo enviando uma requisição `POST` para `/catalog` na **Catalog.Api**.
-2. **Início do Processo**: A API registra a intenção e publica o evento `OrderPlacedEvent` na fila `orders-placed-queue`.
-3. **Simulação de Pagamento**: O **Payments.Worker** consome o `OrderPlacedEvent`, processa a transação fictícia e devolve para o broker o evento de resultado `PaymentProcessedEvent`.
-4. **Reações em Cadeia (Processamento em Paralelo)**:
-   * **Notificação**: O **Notifications.Worker** captura o `PaymentProcessedEvent` na fila `payments-queue` e simula o envio do e-mail de confirmação de pagamento ao usuário.
-   * **Efetivação**: O **Catalog.Worker** também captura o `PaymentProcessedEvent` na mesma fila, encerra o ciclo transacional e adiciona oficialmente o jogo ao catálogo de propriedade daquele usuário no banco PostgreSQL.
+1. **Gatilho Inicial**: O usuário autenticado solicita a compra enviando requisição para `/catalog` via Kong API Gateway.
+2. **Início do Processo**: A **Catalog.Api** registra a intenção e publica `OrderPlacedEvent` na fila `orders-placed-queue`.
+3. **Simulação de Pagamento**: O **Payments.Worker** consome o evento, processa a transação e devolve o evento `PaymentProcessedEvent` via mensageria.
+4. **Reações em Cadeia (Processamento Paralelo)**:
+   * **Notificação**: A função **Notifications.Lambda** captura o evento na fila de pagamentos e simula o e-mail de confirmação.
+   * **Efetivação**: O **Catalog.Worker** captura o mesmo evento, encerra o ciclo e adiciona o jogo ao catálogo de propriedade do usuário.
 
 ---
 
 ## Pré-requisitos
 
-Antes de iniciar, certifique-se de ter instalado em sua máquina:
 * [Git](https://git-scm.com/)
 * [Docker & Docker Compose](https://www.docker.com/)
 * [Kubernetes CLI (kubectl)](https://kubernetes.io/docs/tasks/tools/)
+* [Node.js & npm](https://nodejs.org/) (Para o Serverless Framework)
+* [Serverless Framework](https://www.serverless.com/framework/docs/getting-started) (Instalado globalmente: `npm install -g serverless`)
 
 ---
 
 ## Como Executar o Projeto
 
-Você pode subir o ecossistema completo de duas formas: utilizando **Docker Compose** ou via **Kubernetes/Kubectl**.
+O ecossistema pode ser executado via **Docker Compose** ou via **Kubernetes**. 
+
+*Nota: A Função Lambda requer uma etapa manual de implantação via Serverless Framework após a subida da infraestrutura.*
 
 ### Execução via Docker Compose
 
-Esta opção baixa ou constrói as imagens e sobe toda a infraestrutura (Bancos de dados, RabbitMQ) e as aplicações de forma automatizada com um único comando.
-
 ```bash
-# Clone este repositório orquestrador
+# 1. Clone o repositório orquestrador e inicie a infraestrutura
 git clone https://github.com/splinterxsr/InfraOrchestration.git
 cd InfraOrchestration/
-
-# Inicialize todos os serviços em segundo plano
 docker-compose up -d --build
+
+# 2. Clone e implante o serviço Serverless (Em uma nova aba/pasta)
+git clone https://github.com/splinterxsr/Notifications.git
+cd Notifications/Notifications.Lambda/
+npm install -D serverless-localstack
+serverless deploy --stage local
+
 ```
 
 ### Execução via Kubernetes (Kubectl)
-Como os microsserviços estão divididos em diferentes repositórios, o processo via kubectl exige clonar os subprojetos para aplicar os respectivos manifestos YAML de deployment localizados na pasta k8s de cada um.
 
-#### 1. Configurações Compartilhadas
-Primeiro, aplique os manifestos globais contidos neste repositório raiz.
+Como os microsserviços estão divididos, é necessário aplicar os manifestos YAML de cada repositório.
+
+#### 1. Configurações Compartilhadas e Infraestrutura
 
 ```bash
-# Clone este repositório orquestrador
 git clone https://github.com/splinterxsr/InfraOrchestration.git
-
 cd InfraOrchestration/k8s/
 kubectl apply -f .
-cd ../..
+
 ```
 
-#### 2. Implantação dos Microsserviços
+#### 2. Implantação da Função Serverless no K8s
 
-Execute os blocos de comandos abaixo para clonar cada repositório em uma pasta temporária ou paralela e aplicar seus respectivos arquivos:
+Para fazer o deploy da função no LocalStack que está rodando dentro do Kubernetes, precisamos de um túnel:
 
-##### 2.1 Microsserviço de Usuários
 ```bash
-git clone https://github.com/AnaFMel/Users.git
-cd Users/Users.API/k8s
-kubectl apply -f .
-cd ../../..
-```
+# Abra o túnel em um terminal e mantenha rodando:
+kubectl port-forward svc/localstack 4566:4566
 
-##### 2.2 Microsserviço de Catálogo (API e Worker)
-```bash
-git clone https://github.com/splinterxsr/Catalog.git
-```
-###### Aplicando API:
-```bash
-cd Catalog/Catalog.Api/k8s
-kubectl apply -f .
-cd ../../..
-```
-###### Aplicando Worker:
-```bash
-cd Catalog/Catalog.Worker/k8s
-kubectl apply -f .
-cd ../../..
-```
-
-##### 2.3 Microsserviço de Pagamentos
-```bash
-git clone https://github.com/AnaFMel/Payments.git
-cd Payments/PaymentsWorker/k8s
-kubectl apply -f .
-cd ../../..
-```
-
-##### 2.4 Microsserviço de Notificações
-```bash
+# Em outro terminal, faça o deploy:
 git clone https://github.com/splinterxsr/Notifications.git
-cd Notifications/Notifications.Worker/k8s 
-kubectl apply -f .
-cd ../../..
+cd Notifications/Notifications.Lambda/
+npm install -D serverless-localstack
+serverless deploy --stage local
+
 ```
 
-# Portas e URLs Importantes
-Após a inicialização com sucesso, as seguintes URLs estarão disponíveis:
-| Serviço | URL Compose | URL Kubernetes | Descrição |
-| :--- | :--- | :--- | :--- |
-| Users API | http://localhost:5000 | http://localhost:30100 | autenticação e cadastro de usuários |
-| Catalog API | http://localhost:5010 | http://localhost:30080 | CRUD de jogos e catálogos |
-| RabbitMQ Dashboard | http://localhost:15672 | http://localhost:31672 | Painel de controle do Broker. User/Password: guest / guest |
+#### 3. Implantação das APIs e Workers
 
-# Acesso aos Bancos de Dados
-
-### MySQL
-* Porta: 3306
-* Usuário: root
-* Senha: SenhaAdmin123!
-* Base: users_db
-
-### PostgreSQL
-* Porta: 5432
-* Usuário: catalog_user
-* Senha: catalog_pass
-* Base: catalog_db
-
-# Testando a Aplicação (Passo a Passo)
-Utilize ferramentas como Postman, Insomnia, a extensão REST Client (VS Code) ou o próprio terminal via curl.
-
-*Obs: abaixo, exemplificamos as requisições utilizando as URL's disponibilizadas pelo docker-compose.*
-
-## Passo 1: Autenticação
-Realize a chamada para obter o Bearer Token necessário para as demais requisições.
+Em pastas separadas, clone os microsserviços e aplique seus respectivos manifestos localizados nas pastas `k8s/`:
 
 ```bash
-curl -X POST http://localhost:5000/api/users/auth \
+# Users API
+kubectl apply -f Users/Users.API/k8s
+
+# Catalog API e Worker
+kubectl apply -f Catalog/Catalog.Api/k8s
+kubectl apply -f Catalog/Catalog.Worker/k8s
+
+# Payments Worker
+kubectl apply -f Payments/PaymentsWorker/k8s
+
+```
+
+---
+
+## Portas e URLs Importantes
+
+Com a adoção do **Kong API Gateway**, as requisições diretas às APIs foram abstraídas. Todo o tráfego externo deve passar pela porta `8000`.
+
+| Serviço | URL Compose | Descrição |
+| --- | --- | --- |
+| **API Gateway (Kong)** | `http://localhost:8000` | Ponto de entrada unificado para rotas `/api/users` e `/catalog` |
+| Prometheus | `http://localhost:9090` | Monitoramento e coleta de métricas (OpenTelemetry) |
+| Grafana | `http://localhost:3000` | Dashboards (User/Pass: admin / admin) |
+| LocalStack | `http://localhost:4566` | Emulador Cloud (SQS, SNS, Lambda) |
+
+---
+
+## Testando a Aplicação (Passo a Passo)
+
+*Lembre-se: Todas as requisições agora são direcionadas à porta 8000.*
+
+### Passo 1: Autenticação
+
+```bash
+curl -X POST http://localhost:8000/api/users/auth \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@fiapcloud.com.br",
     "password": "admin"
   }'
-  ```
 
-## Passo 2: Criar um Novo Usuário
-Substitua {{TOKEN}} pelo hash copiado no Passo 1.
+```
+
+### Passo 2: Criar um Novo Usuário
+
+Substitua `{{TOKEN}}` pelo token recebido no passo anterior.
 
 ```bash
-curl -X POST http://localhost:5000/api/users/create \
+curl -X POST http://localhost:8000/api/users/create \
   -H "Authorization: Bearer {{TOKEN}}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -176,29 +165,29 @@ curl -X POST http://localhost:5000/api/users/create \
     "password": "Teste@1234!",
     "roleId": 2
   }'
+
 ```
 
-## Passo 3: Cadastrar um Novo Jogo no Catálogo Geral
-Substitua {{TOKEN}} pelo hash copiado no Passo 1.
+### Passo 3: Cadastrar Jogo no Catálogo
 
 ```bash
-curl -X POST http://localhost:5010/game/ \
+curl -X POST http://localhost:8000/game/ \
   -H "Authorization: Bearer {{TOKEN}}" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Resident Evil X",
-    "description": "A new chapter in the Resident Evil series, combining survival horror with intense action.",
+    "description": "Survival horror and intense action.",
     "genre": "Action",
     "release": "2026-12-01",
     "price": 79.99
   }'
+
 ```
 
-## Passo 4: Adicionar o Jogo ao Catálogo do Usuário (Simulação de Compra)
-Substitua {{TOKEN}} pelo hash copiado no Passo 1.
+### Passo 4: Simulação de Compra
 
 ```bash
-curl -X POST http://localhost:5010/catalog/ \
+curl -X POST http://localhost:8000/catalog/ \
   -H "Authorization: Bearer {{TOKEN}}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -207,23 +196,17 @@ curl -X POST http://localhost:5010/catalog/ \
     "userEmail": "admin@fiapcloud.com.br",
     "price": 79.99
   }'
-  ```
 
-# Monitoramento por Logs
-Para validar o comportamento do sistema, monitore os logs dos containers (ou pods) executando os comandos a seguir.
-
-```bash
-# Se estiver usando Docker Compose:
-docker compose logs -f [nome_do_servico]
-
-# Se estiver usando Kubernetes:
-kubectl logs -f deployment/[nome-do-deployment]
 ```
 
-# Tecnologias e Ferramentas Empregadas
-- .NET 10: Framework principal.
-- MassTransit: Abstração de alto nível e implementação de patterns de mensageria.
-- RabbitMQ: Message Broker.
-- PostgreSQL: Banco de dados relacional para persistencia de Jogos e Catálogos.
-- MySQL: Banco de dados relacional para persistencia dos Usuários.
-- Docker & Kubernetes: Orquestração e conteinerização da infraestrutura.
+---
+
+## Tecnologias Empregadas
+
+* **Backend:** .NET 10, C#
+* **Gateway:** Kong API Gateway
+* **Serverless:** AWS Lambda (LocalStack), Serverless Framework
+* **Mensageria:** MassTransit, Amazon SQS/SNS
+* **Persistência e Cache:** PostgreSQL, MongoDB, Redis, MySQL
+* **Observabilidade:** OpenTelemetry, Prometheus, Grafana
+* **Infraestrutura:** Docker, Kubernetes

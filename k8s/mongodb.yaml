@@ -30,11 +30,6 @@ spec:
           ports:
             - containerPort: 27017
           env:
-            - name: MONGODB_DB
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: MONGODB_DB
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
                 secretKeyRef:

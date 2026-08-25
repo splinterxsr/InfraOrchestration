@@ -19,28 +19,12 @@ services:
       retries: 5
       start_period: 15s
 
-  postgres:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: catalog_user
-      POSTGRES_PASSWORD: catalog_pass
-      POSTGRES_DB: catalog_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - apps_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
-      interval: 5s     
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   mysql:
     image: mysql:8.0
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
@@ -58,23 +42,69 @@ services:
       retries: 10
       start_period: 15s
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel notice
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - apps_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  mongo:
+    image: mongo:latest
+    command: ["--wiredTigerCacheSizeGB", "0.5"]
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - apps_network
+    healthcheck:
+      test: mongosh --quiet --eval 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   catalog-api:
     image: splinterxsr/catalogapi:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: always
     ports:
       - "5010:8080"
     environment:
-      POSTGRES_USER: catalog_user
-      POSTGRES_PASSWORD: catalog_pass
-      POSTGRES_DB: catalog_db
-      POSTGRES_HOST: postgres
+      MONGODB_DB: fcg
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
       JWT_ISSUER: FiapCloudGames
       JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
     depends_on:
-      postgres:
+      mongo:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -83,6 +113,10 @@ services:
 
   users-api:
     image: anafmel/usersapi:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: always
     ports:
       - "5000:8080"
@@ -108,18 +142,23 @@ services:
 
   catalog-worker:
     image: splinterxsr/catalogworker:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: always
     environment:
-      POSTGRES_USER: catalog_user
-      POSTGRES_PASSWORD: catalog_pass
-      POSTGRES_DB: catalog_db
-      POSTGRES_HOST: postgres
+      MONGODB_DB: fcg
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_HOST: rabbitmq
       PAYMENT_QUEUE_NAME: payments-1-queue
     depends_on:
-      postgres:
+      mongo:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -143,6 +182,10 @@ services:
 
   payments-worker:
     image: anafmel/paymentsworker:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: guest
@@ -156,9 +199,10 @@ services:
       - apps_network 
 
 volumes:
-  rabbitmq_data:
-  postgres_data:
-  mysql_data:
+  rabbitmq_data: {}
+  mysql_data: {}
+  mongo_data: {}
+  redis_data: {}
 
 networks:
   apps_network:

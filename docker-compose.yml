@@ -28,7 +28,7 @@ services:
       - SERVICES=sqs,lambda,iam,sns,cloudformation,s3,logs
       - AWS_DEFAULT_REGION=us-east-1
       - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
-      - PERSISTENCE=1
+      - LAMBDA_DOCKER_NETWORK=infraorchestration_apps_network
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - localstack_data:/var/lib/localstack

@@ -22,7 +22,7 @@ spec:
             - containerPort: 4566
           env:
             - name: SERVICES
-              value: "sqs,lambda,iam,sns"
+              value: "sqs,lambda,iam,sns,cloudformation,s3,logs"
             - name: AWS_DEFAULT_REGION
               value: "us-east-1"
           volumeMounts:

@@ -18,35 +18,25 @@ services:
     networks:
       - apps_network
     restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 128M
 
   localstack:
     image: localstack/localstack:3.3.0
-    deploy:
-      resources:
-        limits:
-          memory: 256M
     container_name: localstack-serverless
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sqs,lambda,iam,sns
+      - SERVICES=sqs,lambda,iam,sns,cloudformation,s3,logs
       - AWS_DEFAULT_REGION=us-east-1
       - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
+      - PERSISTENCE=1
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - localstack_data:/var/lib/localstack
     networks:
       - apps_network
 
   prometheus:
     image: prom/prometheus:latest
-    deploy:
-      resources:
-        limits:
-          memory: 256M
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -57,10 +47,6 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    deploy:
-      resources:
-        limits:
-          memory: 256M
     container_name: grafana
     ports:
       - "3000:3000"
@@ -71,16 +57,12 @@ services:
 
   mysql:
     image: mysql:8.0
-    deploy:
-      resources:
-        limits:
-          memory: 256M
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
       MYSQL_DATABASE: users_db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -108,10 +90,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-    deploy:
-      resources:
-        limits:
-          memory: 128M
 
   mongo:
     image: mongo:latest
@@ -135,10 +113,6 @@ services:
 
   catalog-api:
     image: splinterxsr/catalogapi:latest
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     restart: always
     ports:
       - "5010:8080"
@@ -146,9 +120,7 @@ services:
       MONGODB_DB: fcg
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
+      AWS_ENDPOINT: http://localstack:4566
       JWT_ISSUER: FiapCloudGames
       JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
     depends_on:
@@ -163,10 +135,6 @@ services:
 
   users-api:
     image: anafmel/usersapi:latest
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     restart: always
     ports:
       - "5000:8080"
@@ -194,18 +162,12 @@ services:
 
   catalog-worker:
     image: splinterxsr/catalogworker:latest
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     restart: always
     environment:
       MONGODB_DB: fcg
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-      RABBITMQ_HOST: rabbitmq
+      AWS_ENDPOINT: http://localstack:4566
       PAYMENT_QUEUE_NAME: payments-1-queue
     depends_on:
       mongo:
@@ -219,10 +181,6 @@ services:
 
   payments-worker:
     image: anafmel/paymentsworker:latest
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     restart: always
     environment:
       AWS_ENDPOINT: http://localstack:4566
@@ -234,10 +192,10 @@ services:
       - apps_network
 
 volumes:
-  rabbitmq_data: {}
   mysql_data: {}
   mongo_data: {}
   redis_data: {}
+  localstack_data: {}
 
 networks:
   apps_network:

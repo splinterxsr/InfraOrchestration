@@ -18,6 +18,10 @@ services:
     networks:
       - apps_network
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   localstack:
     image: localstack/localstack:3.3.0
@@ -34,6 +38,10 @@ services:
       - localstack_data:/var/lib/localstack
     networks:
       - apps_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   prometheus:
     image: prom/prometheus:latest
@@ -44,6 +52,10 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - apps_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   grafana:
     image: grafana/grafana:latest
@@ -54,10 +66,18 @@ services:
       - apps_network
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   mysql:
     image: mysql:8.0
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     environment:
       MYSQL_ROOT_PASSWORD: SenhaAdmin123!
       MYSQL_DATABASE: users_db
@@ -78,6 +98,10 @@ services:
     image: redis:7-alpine
     restart: always
     command: redis-server --save 60 1 --loglevel notice
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     ports:
       - "6379:6379"
     volumes:
@@ -95,6 +119,10 @@ services:
     image: mongo:latest
     command: ["--wiredTigerCacheSizeGB", "0.5"]
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: r00tp@ss
@@ -114,6 +142,10 @@ services:
   catalog-api:
     image: splinterxsr/catalogapi:latest
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     ports:
       - "5010:8080"
     environment:
@@ -136,6 +168,10 @@ services:
   users-api:
     image: anafmel/usersapi:latest
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     ports:
       - "5000:8080"
     environment:
@@ -163,6 +199,10 @@ services:
   catalog-worker:
     image: splinterxsr/catalogworker:latest
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     environment:
       MONGODB_DB: fcg
       MONGO_INITDB_ROOT_USERNAME: root
@@ -182,6 +222,10 @@ services:
   payments-worker:
     image: anafmel/paymentsworker:latest
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     environment:
       AWS_ENDPOINT: http://localstack:4566
       ORDER_PLACED_QUEUE_NAME: orders-placed-queue

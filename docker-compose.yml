@@ -18,9 +18,17 @@ services:
     networks:
       - apps_network
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   localstack:
     image: localstack/localstack:3.3.0
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     container_name: localstack-serverless
     ports:
       - "4566:4566"
@@ -35,6 +43,10 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -45,6 +57,10 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     container_name: grafana
     ports:
       - "3000:3000"
@@ -95,7 +111,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 128M
 
   mongo:
     image: mongo:latest

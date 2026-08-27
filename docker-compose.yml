@@ -155,6 +155,7 @@ services:
       AWS_ENDPOINT: http://localstack:4566
       JWT_ISSUER: FiapCloudGames
       JWT_KEY: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
+      REDIS_HOST: redis:6379
     depends_on:
       mongo:
         condition: service_healthy

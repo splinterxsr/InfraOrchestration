@@ -32,7 +32,7 @@ services:
       SERVICES: "sqs,lambda,iam,sns,cloudformation,s3,logs"
       AWS_DEFAULT_REGION: "us-east-1"
       LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT: "60"
-      LAMBDA_DOCKER_NETWORK: "${COMPOSE_PROJECT_NAME:-infraorchestration}_apps_network"
+      LAMBDA_DOCKER_NETWORK: "${COMPOSE_PROJECT_NAME}_apps_network"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - localstack_data:/var/lib/localstack
@@ -205,7 +205,9 @@ services:
         limits:
           memory: 128M
     environment:
+      REDIS_HOST: "redis:6379"
       MONGODB_DB: "fcg"
+      MONGODB_HOST: "mongo:27017"
       MONGO_INITDB_ROOT_USERNAME: "root"
       MONGO_INITDB_ROOT_PASSWORD: "r00tp@ss"
       AWS_ENDPOINT: "http://localstack:4566"

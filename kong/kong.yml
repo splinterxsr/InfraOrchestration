@@ -5,10 +5,9 @@ services:
   - name: users-service
     url: http://users-api:8080
     routes:
-      - name: users-login-route
+      - name: users-auth-route
         paths:
-          - /api/users/login
-          - /api/users/register
+          - /api/users/auth
         strip_path: false
       - name: users-protected-route
         paths:
@@ -19,6 +18,8 @@ services:
             config:
               claims_to_verify:
                 - exp
+              key_claim_name: iss
+
   - name: catalog-service
     url: http://catalog-api:8080
     routes:
@@ -32,6 +33,8 @@ services:
             config:
               claims_to_verify:
                 - exp
+              key_claim_name: iss
+
 consumers:
   - username: fiap-cloud-games-consumer
     jwt_secrets:

@@ -25,6 +25,8 @@ spec:
               value: "sqs,lambda,iam,sns,cloudformation,s3,logs"
             - name: AWS_DEFAULT_REGION
               value: "us-east-1"
+            - name: DOCKER_HOST
+              value: "unix:///var/run/docker.sock"
           volumeMounts:
             - mountPath: /var/run/docker.sock
               name: docker-socket

@@ -26,7 +26,7 @@ services:
       - name: catalog-protected-route
         paths:
           - /catalog
-          - /games
+          - /game
         strip_path: false
         plugins:
           - name: jwt
@@ -40,4 +40,4 @@ consumers:
     jwt_secrets:
       - key: FiapCloudGames
         secret: M72gsn/ZtfvDSgyBgWNBOYf8HAHBO7FGIwiKPtwipmdMY6ZbdgrJ66yBLnXKk9O8P6fjj7G+BoE5+Ou/xfEgNQ==
-        algorithm: HS256
+        algorithm: HS512

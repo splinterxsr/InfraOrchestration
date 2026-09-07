@@ -26,19 +26,13 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:latest
-        env:
-          - name: REDIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: app-secrets
-                key: REDIS_PASSWORD
+        image: redis:7-alpine
         resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
+              memory: "256Mi"
               cpu: "500m"
         ports:
         - containerPort: 6379

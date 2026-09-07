@@ -4,5 +4,6 @@ metadata:
   name: app-config
 data:
   MONGODB_HOST: "mongodb-service"
+  MONGODB_DB: "fcg"
   REDIS_HOST: "redis-service"
   JWT_ISSUER: "FiapCloudGames"

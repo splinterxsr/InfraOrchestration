@@ -83,7 +83,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
     environment:
       MYSQL_ROOT_PASSWORD: "SenhaAdmin123!"
       MYSQL_DATABASE: "users_db"

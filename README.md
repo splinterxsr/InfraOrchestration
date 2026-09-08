@@ -14,7 +14,7 @@ O ecossistema é fragmentado em múltiplos repositórios específicos para cada 
 | :--- | :--- | :--- |
 | **`Kong API Gateway`** | Gateway | Ponto de entrada unificado. Responsável por rotear as requisições para os microsserviços internos e validar a autenticação (JWT) na borda. |
 | **`Users.Api`** | Minimal API | Gerenciamento de usuários, autenticação (JWT) e cadastro. Persistência em **MySQL**. |
-| **`Catalog.Api`** | REST API | Gerenciamento de jogos (CRUD) e intenção de compra. Persistência poliglota utilizando **PostgreSQL**, **MongoDB** e Cache distribuído com **Redis**. |
+| **`Catalog.Api`** | REST API | Gerenciamento de jogos (CRUD) e intenção de compra. Persistência poliglota utilizando **MongoDB** e Cache distribuído com **Redis**. |
 | **`Catalog.Worker`**| Worker | Consome a confirmação de pagamento e efetiva a vinculação do jogo ao catálogo do usuário. |
 | **`Payments.Worker`**| Worker | Consome as intenções de compra, simula pagamento e emite o resultado. |
 | **`Notifications.Lambda`**| Serverless | Função Serverless (AWS Lambda) acionada sob demanda para disparo simulado de e-mails, otimizando o uso de recursos. |
@@ -28,7 +28,7 @@ O ecossistema é fragmentado em múltiplos repositórios específicos para cada 
 A comunicação assíncrona entre os microsserviços ocorre através de filas do **Amazon SQS** e tópicos **SNS**, gerenciados pelo **MassTransit**.
 
 ### 1. Fluxo de Cadastro de Novos Usuários
-1. **Gatilho Inicial**: Uma requisição via Kong API Gateway para `/api/users/create` atinge a **Users.Api**.
+1. **Gatilho Inicial**: Uma requisição via Kong API Gateway para `/user/create` atinge a **Users.Api**.
 2. **Persistência e Publicação**: A API cadastra o usuário no banco de dados MySQL e publica o evento `UserCreatedEvent` no SQS.
 3. **Reação Assíncrona**: A função serverless **Notifications.Lambda** é acionada (triggered) consumindo o evento da fila `users-queue` para simular o envio de um e-mail de boas-vindas.
 
@@ -146,7 +146,7 @@ Com a adoção do **Kong API Gateway**, as requisições diretas às APIs foram 
 
 | Serviço | URL Compose | Descrição |
 | --- | --- | --- |
-| **API Gateway (Kong)** | `http://localhost:8000` | Ponto de entrada unificado para rotas `/api/users` e `/catalog` |
+| **API Gateway (Kong)** | `http://localhost:8000` | Ponto de entrada unificado para rotas `/user` e `/catalog` |
 | Prometheus | `http://localhost:9090` | Monitoramento e coleta de métricas (OpenTelemetry) |
 | Grafana | `http://localhost:3000` | Dashboards (User/Pass: admin / admin) |
 | LocalStack | `http://localhost:4566` | Emulador Cloud (SQS, SNS, Lambda) |
@@ -167,7 +167,7 @@ kubectl port-forward service/kong-gateway 8000:8000
 ### Passo 1: Autenticação
 
 ```bash
-curl -X POST http://localhost:8000/api/users/auth \
+curl -X POST http://localhost:8000/user/auth \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@fiapcloud.com.br",
@@ -181,7 +181,7 @@ curl -X POST http://localhost:8000/api/users/auth \
 Substitua `{{TOKEN}}` pelo token recebido no passo anterior.
 
 ```bash
-curl -X POST http://localhost:8000/api/users/create \
+curl -X POST http://localhost:8000/user/create \
   -H "Authorization: Bearer {{TOKEN}}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -232,6 +232,6 @@ curl -X POST http://localhost:8000/catalog/ \
 * **Gateway:** Kong API Gateway
 * **Serverless:** AWS Lambda (LocalStack), Serverless Framework
 * **Mensageria:** MassTransit, Amazon SQS/SNS
-* **Persistência e Cache:** PostgreSQL, MongoDB, Redis, MySQL
+* **Persistência e Cache:** MongoDB, Redis, MySQL
 * **Observabilidade:** OpenTelemetry, Prometheus, Grafana
 * **Infraestrutura:** Docker, Kubernetes

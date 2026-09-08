@@ -2,16 +2,16 @@ _format_version: "3.0"
 _transform: true
 
 services:
-  - name: users-service
-    url: http://users-api:8080
+  - name: user-service
+    url: http://user-api:8080
     routes:
-      - name: users-auth-route
+      - name: user-auth-route
         paths:
-          - /api/users/auth
+          - /user/auth
         strip_path: false
-      - name: users-protected-route
+      - name: user-protected-route
         paths:
-          - /api/users
+          - /user
         strip_path: false
         plugins:
           - name: jwt

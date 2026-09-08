@@ -95,6 +95,7 @@ O Localstack deve ser subido via Docker-Compose apenas:
 
 ```bash
 # Acesse a pasta localstack e rode:
+cd InfraOrchestration/localstack/
 docker-compose up -d
 
 # Em seguida, faça o deploy:
@@ -113,13 +114,16 @@ Em pastas separadas, clone os microsserviços e aplique seus respectivos manifes
 
 ```bash
 # Users API
+git clone https://github.com/AnaFMel/Users.git
 kubectl apply -f Users/Users.API/k8s
 
 # Catalog API e Worker
+git clone https://github.com/splinterxsr/Catalog.git
 kubectl apply -f Catalog/Catalog.Api/k8s
 kubectl apply -f Catalog/Catalog.Worker/k8s
 
 # Payments Worker
+git clone https://github.com/AnaFMel/Payments.git
 kubectl apply -f Payments/PaymentsWorker/k8s
 
 ```

@@ -157,6 +157,13 @@ Com a adoção do **Kong API Gateway**, as requisições diretas às APIs foram 
 
 *Lembre-se: Todas as requisições agora são direcionadas à porta 8000.*
 
+Se for testar no Kubernetes, fazer port-forward do serviço Kong:
+
+```bash
+kubectl port-forward service/kong-gateway 8000:8000
+
+```
+
 ### Passo 1: Autenticação
 
 ```bash

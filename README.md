@@ -70,7 +70,9 @@ docker-compose up -d --build
 git clone https://github.com/splinterxsr/Notifications.git
 cd Notifications/Notifications.Lambda/
 npm install -D serverless-localstack
-serverless deploy --stage local
+dotnet tool install -g Amazon.Lambda.Tools
+dotnet lambda package -o package.zip
+npx serverless deploy --stage local --force
 
 ```
 
@@ -87,19 +89,21 @@ kubectl apply -f .
 
 ```
 
-#### 2. Implantação da Função Serverless no K8s
+#### 2. Implantação da Função Serverless
 
-Para fazer o deploy da função no LocalStack que está rodando dentro do Kubernetes, precisamos de um túnel:
+O Localstack deve ser subido via Docker-Compose apenas:
 
 ```bash
-# Abra o túnel em um terminal e mantenha rodando:
-kubectl port-forward svc/localstack 4566:4566
+# Acesse a pasta localstack e rode:
+docker-compose up -d
 
-# Em outro terminal, faça o deploy:
+# Em seguida, faça o deploy:
 git clone https://github.com/splinterxsr/Notifications.git
 cd Notifications/Notifications.Lambda/
 npm install -D serverless-localstack
-serverless deploy --stage local
+dotnet tool install -g Amazon.Lambda.Tools
+dotnet lambda package -o package.zip
+npx serverless deploy --stage local --force
 
 ```
 
@@ -117,6 +121,20 @@ kubectl apply -f Catalog/Catalog.Worker/k8s
 
 # Payments Worker
 kubectl apply -f Payments/PaymentsWorker/k8s
+
+```
+
+#### 4. Implantação do Dashboard no Grafana
+Acesse o diretório:
+
+```bash
+cd grafana\dashboards
+
+```
+Gere o configmap com o JSON do dashboard:
+
+```bash
+kubectl create configmap grafana-dashboards --from-file=monitoramento-apis.json -o yaml --dry-run=client > grafana-dashboard-configmap.yaml
 
 ```
 

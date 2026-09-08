@@ -13,7 +13,20 @@ data:
         type: prometheus
         access: proxy
         url: http://prometheus-service.default.svc.cluster.local:9090
+        uid: efwzho8hmpxj4d
         isDefault: true
+
+  dashboard-provider.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
 
 ---
 
@@ -65,14 +78,23 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           volumeMounts:
-            - name: datasource-volume
-              mountPath: /etc/grafana/provisioning/datasources/
+            - name: provisioning-volume
+              mountPath: /etc/grafana/provisioning/datasources/prometheus-datasource.yaml
+              subPath: prometheus-datasource.yaml
+            - name: provisioning-volume
+              mountPath: /etc/grafana/provisioning/dashboards/dashboard-provider.yaml
+              subPath: dashboard-provider.yaml
+            - name: dashboard-volume
+              mountPath: /var/lib/grafana/dashboards
             - name: storage-volume
               mountPath: /var/lib/grafana
       volumes:
-        - name: datasource-volume
+        - name: provisioning-volume
           configMap:
             name: grafana-datasources
+        - name: dashboard-volume
+          configMap:
+            name: grafana-dashboards
         - name: storage-volume
           persistentVolumeClaim:
             claimName: grafana-pvc

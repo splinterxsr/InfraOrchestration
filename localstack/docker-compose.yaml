@@ -1,0 +1,25 @@
+services:
+
+  localstack:
+      image: localstack/localstack:3.3.0
+      container_name: localstack-serverless
+      ports:
+        - "4566:4566"
+      environment:
+        - SERVICES=sqs,lambda,iam,sns,cloudformation,s3,logs
+        - AWS_DEFAULT_REGION=us-east-1
+        - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
+        - LAMBDA_DOCKER_NETWORK=${COMPOSE_PROJECT_NAME}_apps_network
+        - LOCALSTACK_AUTH_TOKEN=ls-cipIRAFa-4473-DiJA-FipI-7327jAVU5807
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
+        - localstack_data:/var/lib/localstack
+      networks:
+        - apps_network
+
+volumes:
+  localstack_data: {}
+
+networks:
+  apps_network:
+    driver: bridge

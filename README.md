@@ -128,17 +128,11 @@ kubectl apply -f Payments/PaymentsWorker/k8s
 
 ```
 
-#### 4. Implantação do Dashboard no Grafana
-Acesse o diretório:
+#### 4. Visualizar o Dashboard no Grafana
+Faça um port-forward no serviço do Grafana:
 
 ```bash
-cd grafana\dashboards
-
-```
-Gere o configmap com o JSON do dashboard:
-
-```bash
-kubectl create configmap grafana-dashboards --from-file=monitoramento-apis.json -o yaml --dry-run=client > grafana-dashboard-configmap.yaml
+kubectl port-forward service/grafana-service 3000:3000
 
 ```
 

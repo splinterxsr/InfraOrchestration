@@ -16,9 +16,9 @@ data:
         static_configs:
           - targets: ['prometheus-service:9090']
 
-      - job_name: 'users-api'
+      - job_name: 'user-api'
         static_configs:
-          - targets: ['users-api:8080']
+          - targets: ['user-api:8080']
 
       - job_name: 'catalog-api'
         static_configs:

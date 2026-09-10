@@ -147,7 +147,6 @@ Com a adoção do **Kong API Gateway**, as requisições diretas às APIs foram 
 | **API Gateway (Kong)** | `http://localhost:8000` | Ponto de entrada unificado para rotas `/user` e `/catalog` |
 | Prometheus | `http://localhost:9090` | Monitoramento e coleta de métricas (OpenTelemetry) |
 | Grafana | `http://localhost:3000` | Dashboards (User/Pass: admin / admin) |
-| LocalStack | `http://localhost:4566` | Emulador Cloud (SQS, SNS, Lambda) |
 
 ---
 

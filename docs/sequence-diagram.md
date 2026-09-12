@@ -12,10 +12,10 @@ sequenceDiagram
     participant CS as CatalogService
     
     %% Mensageria
-    participant RMQ as RabbitMQ (MassTransit)
+    participant SQS as AWS SQS (MassTransit)
     
     %% Workers e Serviços de Fundo
-    participant NotifWorker as Notifications.Worker
+    participant NotifWorker as Notifications.Lambda
     participant PayWorker as Payments.Worker
     participant CatWorker as Catalog.Worker
     participant Email as Serviço de E-mail
@@ -27,26 +27,26 @@ sequenceDiagram
     %% ==========================================
     Note over User, Email: FLUXO 1: AUTENTICAÇÃO, CADASTRO E NOTIFICAÇÃO DE USUÁRIO
 
-    User->>UsersAPI: POST /api/users/auth (Credenciais)
+    User->>UsersAPI: POST /users/auth (Credenciais)
     activate UsersAPI
     UsersAPI->>UsersAPI: Valida credenciais e gera JWT
     UsersAPI-->>User: Retorna Token JWT (200 OK)
     deactivate UsersAPI
 
-    User->>UsersAPI: POST /api/users/create (Dados + Bearer Token)
+    User->>UsersAPI: POST /users/create (Dados + Bearer Token)
     activate UsersAPI
     UsersAPI->>US: Chame UserService.Add(user)
     activate US
     US->>US: Salva usuário no Banco de Dados
-    US->>RMQ: Publica UserCreatedEvent
-    activate RMQ
+    US->>SQS: Publica UserCreatedEvent
+    activate SQS
     US-->>UsersAPI: Retorna Sucesso
     deactivate US
     UsersAPI-->>User: Retorna Status 200 OK
     deactivate UsersAPI
 
-    RMQ-)NotifWorker: Consome UserCreatedEvent
-    deactivate RMQ
+    SQS-)NotifWorker: Consome UserCreatedEvent
+    deactivate SQS
     activate NotifWorker
     NotifWorker->>Email: Envia e-mail de boas-vindas
     activate Email
@@ -62,7 +62,7 @@ sequenceDiagram
     %% ==========================================
     Note over User, Email: FLUXO 2: AQUISIÇÃO DE JOGOS E PROCESSAMENTO DE PAGAMENTO
 
-    User->>UsersAPI: POST /api/users/auth (Credenciais)
+    User->>UsersAPI: POST /users/auth (Credenciais)
     activate UsersAPI
     UsersAPI-->>User: Retorna Token JWT (200 OK)
     deactivate UsersAPI
@@ -71,36 +71,36 @@ sequenceDiagram
     activate CatAPI
     CatAPI->>CS: CatalogService.AddToCatalogAsync()
     activate CS
-    CS->>RMQ: Publica OrderPlacedEvent
-    activate RMQ
+    CS->>SQS: Publica OrderPlacedEvent
+    activate SQS
     CS-->>CatAPI: Confirma recebimento da ordem
     deactivate CS
     CatAPI-->>User: Pedido Recebido / Processando (200 OK)
     deactivate CatAPI
 
     %% Processamento do Pagamento
-    RMQ-)PayWorker: Consome OrderPlacedEvent
-    deactivate RMQ
+    SQS-)PayWorker: Consome OrderPlacedEvent
+    deactivate SQS
     activate PayWorker
     PayWorker->>PayWorker: PaymentService.SimulatePayment()
     
     alt Pagamento Aprovado
-        PayWorker->>RMQ: Publica PaymentProcessedEvent com status Approved
-        activate RMQ
+        PayWorker->>SQS: Publica PaymentProcessedEvent com status Approved
+        activate SQS
     else Pagamento Recusado
-        PayWorker->>RMQ:  Publica PaymentProcessedEvent com status Rejected
+        PayWorker->>SQS:  Publica PaymentProcessedEvent com status Rejected
     end
     deactivate PayWorker
 
     %% Consumidores em paralelo do PaymentProcessedEvent
     par Atualização do Catálogo
-        RMQ-)CatWorker: Consome PaymentProcessedEvent
+        SQS-)CatWorker: Consome PaymentProcessedEvent
         activate CatWorker
         CatWorker->>CatWorker: Adiciona o jogo ao catálogo do usuário
         deactivate CatWorker
     and Notificação por E-mail
-        RMQ-)NotifWorker: Consome PaymentProcessedEvent
-        deactivate RMQ
+        SQS-)NotifWorker: Consome PaymentProcessedEvent
+        deactivate SQS
         activate NotifWorker
         NotifWorker->>Email: Envia e-mail de confirmação de compra
         activate Email

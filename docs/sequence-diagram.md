@@ -6,8 +6,8 @@ sequenceDiagram
     actor User as Usuário / Client
     
     %% Participantes das APIs e Serviços
-    participant UsersAPI as Users.API (Port 5000)
-    participant CatAPI as Catalog.API (Port 5010)
+    participant UsersAPI as User.API (Port 8000)
+    participant CatAPI as Catalog.API (Port 8000)
     participant US as UserService
     participant CS as CatalogService
     
@@ -27,13 +27,13 @@ sequenceDiagram
     %% ==========================================
     Note over User, Email: FLUXO 1: AUTENTICAÇÃO, CADASTRO E NOTIFICAÇÃO DE USUÁRIO
 
-    User->>UsersAPI: POST /users/auth (Credenciais)
+    User->>UsersAPI: POST /user/auth (Credenciais)
     activate UsersAPI
     UsersAPI->>UsersAPI: Valida credenciais e gera JWT
     UsersAPI-->>User: Retorna Token JWT (200 OK)
     deactivate UsersAPI
 
-    User->>UsersAPI: POST /users/create (Dados + Bearer Token)
+    User->>UsersAPI: POST /user/create (Dados + Bearer Token)
     activate UsersAPI
     UsersAPI->>US: Chame UserService.Add(user)
     activate US
@@ -62,7 +62,7 @@ sequenceDiagram
     %% ==========================================
     Note over User, Email: FLUXO 2: AQUISIÇÃO DE JOGOS E PROCESSAMENTO DE PAGAMENTO
 
-    User->>UsersAPI: POST /users/auth (Credenciais)
+    User->>UsersAPI: POST /user/auth (Credenciais)
     activate UsersAPI
     UsersAPI-->>User: Retorna Token JWT (200 OK)
     deactivate UsersAPI

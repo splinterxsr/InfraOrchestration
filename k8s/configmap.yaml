@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: app-config
 data:
-  MONGODB_HOST: "mongodb-service"
-  MONGODB_DB: "fcg"
+  PAYMENTS_TOPIC: "payments-topic"
+  ORDERS_TOPIC: "orders-topic"
   REDIS_HOST: "redis-service"
   JWT_ISSUER: "FiapCloudGames"

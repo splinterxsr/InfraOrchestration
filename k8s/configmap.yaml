@@ -7,3 +7,4 @@ data:
   ORDERS_TOPIC: "orders-topic"
   REDIS_HOST: "redis-service"
   JWT_ISSUER: "FiapCloudGames"
+  KeyVaultUri: "https://kv-postech-fcg.vault.azure.net/"

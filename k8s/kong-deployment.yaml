@@ -43,10 +43,10 @@ spec:
           resources:
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 256Mi
             requests:
               cpu: 100m
-              memory: 256Mi
+              memory: 128Mi
           volumeMounts:
             - name: kong-config-volume
               mountPath: /etc/kong
@@ -62,15 +62,13 @@ metadata:
   labels:
     app: kong
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: kong
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: 30000
       name: proxy
     - port: 8001
       targetPort: 8001
-      nodePort: 30001
       name: admin

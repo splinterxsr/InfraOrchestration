@@ -28,7 +28,22 @@ jobs:
             resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
 
-        # 3. Aplicar apenas ConfigMaps, Secrets, Redis e Kong
+        # 3. Injetar segredos dinamicamente nos arquivos do K8s antes de aplicar
+        - name: Substitute Secrets in Manifests
+          env:
+            AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+            AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+            AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          run: |
+            echo "Substituindo credenciais no acr-secret.yaml e secrets.yaml..."
+            sed -i "s|<SEU_AZURE_CLIENT_ID>|$AZURE_CLIENT_ID|g" k8s/acr-secret.yaml
+            sed -i "s|<SEU_AZURE_CLIENT_SECRET>|$AZURE_CLIENT_SECRET|g" k8s/acr-secret.yaml
+
+            sed -i "s|<SEU_AZURE_TENANT_ID>|$AZURE_TENANT_ID|g" k8s/secrets.yaml
+            sed -i "s|<SEU_AZURE_CLIENT_ID>|$AZURE_CLIENT_ID|g" k8s/secrets.yaml
+            sed -i "s|<SEU_AZURE_CLIENT_SECRET>|$AZURE_CLIENT_SECRET|g" k8s/secrets.yaml
+
+        # 4. Aplicar os Manifestos no AKS
         - name: Apply Selected Kubernetes Manifests
           run: |
             echo "Aplicando ConfigMaps e Secrets globais..."
@@ -37,9 +52,11 @@ jobs:
             kubectl apply -f k8s/acr-secret.yaml
             kubectl apply -f k8s/kong-configmap.yaml
             
-            echo "Aplicando Redis e Kong..."
+            echo "Aplicando Elasticsearch, Redis e Kong..."
+            kubectl apply -f k8s/elasticsearch.yaml
             kubectl apply -f k8s/redis.yaml
             kubectl apply -f k8s/kong-deployment.yaml
             
-            echo "Acompanhando o status do Kong..."
+            echo "Acompanhando o status dos deployments..."
+            kubectl rollout status deployment/elasticsearch --timeout=120s || true
             kubectl rollout status deployment/kong --timeout=120s || true

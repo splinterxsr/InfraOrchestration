@@ -224,7 +224,6 @@ curl -X POST http://localhost:8000/catalog/ \
 ---
 
 ## Tecnologias Empregadas
-
 * **Backend:** .NET 10, C#
 * **Gateway:** Kong API Gateway
 * **Serverless:** AWS Lambda (LocalStack), Serverless Framework

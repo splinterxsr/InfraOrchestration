@@ -4,7 +4,7 @@ Este repositório centraliza a orquestração, implantação e execução do eco
 
 A arquitetura foi modernizada para atender a requisitos avançados de escalabilidade, resiliência e observabilidade. O sistema utiliza um **API Gateway** como ponto de entrada único, comunicação orientada a eventos via **Azure Service Bus**, execução **Serverless** para otimização de recursos, e uma stack completa de **Monitoramento e Persistência Poliglota**.
 
-O projeto também conta com pipelines `CI/CD` automatizados via **Github Actions**.
+O projeto também conta com pipelines `CI/CD` automatizados via **Github Actions**. *Obs: nossas pipelines contam com uma execução integrada de testes de unidade e de integração isolados via Testcontainers garantindo a qualidade antes do build das imagens Docker.*
 
 ---
 

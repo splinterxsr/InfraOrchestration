@@ -12,7 +12,7 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-service.default.svc.cluster.local:9090
+        url: http://prometheus-service:9090
         uid: efwzho8hmpxj4d
         isDefault: true
 
@@ -30,17 +30,17 @@ data:
 
 ---
 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafana-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: grafana-pvc
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+# ---
 
 apiVersion: apps/v1
 kind: Deployment
@@ -72,10 +72,10 @@ spec:
               value: "admin"
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "500m"
           volumeMounts:
             - name: provisioning-volume
@@ -96,8 +96,8 @@ spec:
           configMap:
             name: grafana-dashboards
         - name: storage-volume
-          persistentVolumeClaim:
-            claimName: grafana-pvc
+          # persistentVolumeClaim:
+          #   claimName: grafana-pvc
 
 ---
 apiVersion: v1
@@ -108,7 +108,7 @@ metadata:
   labels:
     app: grafana
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - port: 3000
       targetPort: 3000
